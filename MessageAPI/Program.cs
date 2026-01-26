@@ -1,8 +1,7 @@
 using MessageService.Contracts;
-using MessageService.Services;
 using MessageService.Settings;
-using Microsoft.AspNetCore.Builder;
-using System.Runtime.CompilerServices;
+using TelegramBotService.Contracts;
+using TelegramBotService.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +10,10 @@ builder.Services.Configure<MessageBusSettings>(
 
 builder.Services.AddMessagingServices();
 
+builder.Services.Configure<TelegramOptions>(
+    builder.Configuration.GetSection("Telegram"));
+
+builder.Services.AddTelegramServices();
 
 builder.Services.AddApplicaitonServices();
 
