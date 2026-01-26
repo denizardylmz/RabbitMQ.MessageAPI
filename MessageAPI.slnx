@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="MessageAPI/MessageAPI.csproj" />
+  <Project Path="MessageService/MessageService.csproj" />
+</Solution>
