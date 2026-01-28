@@ -1,5 +1,6 @@
 <Solution>
-  <Project Path="MessageAPI/MessageAPI.csproj" />
+  <Project Path="MessageAPI/MessageAPI.API.csproj" />
   <Project Path="MessageService/MessageService.csproj" />
   <Project Path="TelegramBotService/TelegramBotService.csproj" Id="6bdbc1ef-71c0-4852-aa44-42eb38dfed0c" />
+  <Project Path="✅ MessageAPI.Infrastructure/✅ MessageAPI.Infrastructure.csproj" Id="b9657944-93eb-4d46-8f70-9946c9c82edc" />
 </Solution>
