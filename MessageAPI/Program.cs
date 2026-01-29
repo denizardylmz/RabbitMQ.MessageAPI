@@ -1,3 +1,4 @@
+using MessageAPI.Abstractions;
 using MessageAPI.API.Infrastructure;
 using MessageAPI.Infrastructure.Interceptors;
 using MessageAPI.Infrastructure.Settings;
@@ -5,6 +6,7 @@ using MessageService.Contracts;
 using MessageService.Settings;
 using TelegramBotService.Contracts;
 using TelegramBotService.Settings;
+using MessageAPI.Application.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,10 +24,11 @@ builder.Services.AddOptions<DatabaseOptions>()
 builder.Services.Configure<DatabaseOptions>(
     builder.Configuration.GetSection("DatabaseOptions"));
 
+builder.Services.AddAPIServices();
 builder.Services.AddMessagingServices();
-builder.Services.AddApplicaitonServices();
 builder.Services.AddTelegramServices();
 builder.Services.AddDBServices();
+builder.Services.AddApplicaitonServices();
 
 var app = builder.Build();
 
@@ -48,7 +51,7 @@ app.Run();
 
 public static class ServiceExtensions
 {
-    public static IServiceCollection AddApplicaitonServices(
+    public static IServiceCollection AddAPIServices(
         this IServiceCollection services)
     {
 

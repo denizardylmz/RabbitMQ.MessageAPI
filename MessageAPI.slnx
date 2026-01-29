@@ -1,6 +1,7 @@
 <Solution>
   <Project Path="MessageAPI.Abstractions/MessageAPI.Abstractions.csproj" Id="568a4fbd-4a43-4508-b1ff-e452a72c0a55" />
   <Project Path="MessageAPI.Application/MessageAPI.Application.csproj" Id="1ce47277-d8f5-4394-9b86-01f1a79200a9" />
+  <Project Path="MessageAPI.Domain/MessageAPI.Domain.csproj" Id="16b82557-7999-4c6d-b920-8717e5719fb6" />
   <Project Path="MessageAPI.Infrastructure/MessageAPI.Infrastructure.csproj" Id="27a7d1f5-4d94-490e-aeba-f95e7a7737a2" />
   <Project Path="MessageAPI/MessageAPI.API.csproj" />
   <Project Path="MessageService/MessageService.csproj" />

@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MessageAPI.Application\MessageAPI.Application.csproj" />
     <ProjectReference Include="..\MessageAPI.Infrastructure\MessageAPI.Infrastructure.csproj" />
     <ProjectReference Include="..\MessageService\MessageService.csproj" />
     <ProjectReference Include="..\TelegramBotService\TelegramBotService.csproj" />

@@ -6,8 +6,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\MessageAPI.Abstractions\MessageAPI.Abstractions.csproj" />
-  </ItemGroup>
-
 </Project>

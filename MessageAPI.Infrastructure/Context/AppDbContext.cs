@@ -1,13 +1,14 @@
-﻿using System;
+﻿using MessageAPI.Abstractions.DbContracts;
+using MessageAPI.Domain.DbModels;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Text;
-using MessageAPI.Infrastructure.Models;
-using Microsoft.EntityFrameworkCore;
 
 
 namespace MessageAPI.Infrastructure.Context
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : DbContext, IAppDbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options)
     : base(options) { }

@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MessageAPI.Abstractions\MessageAPI.Abstractions.csproj" />
+    <ProjectReference Include="..\MessageAPI.Domain\MessageAPI.Domain.csproj" />
   </ItemGroup>
 
 </Project>

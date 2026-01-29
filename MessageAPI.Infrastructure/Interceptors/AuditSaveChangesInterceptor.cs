@@ -1,5 +1,5 @@
 ﻿using MessageAPI.Abstractions;
-using MessageAPI.Infrastructure.Models;
+using MessageAPI.Domain.DbModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System;

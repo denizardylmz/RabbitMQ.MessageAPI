@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MessageAPI.Infrastructure.Models
+namespace MessageAPI.Domain.DbModels
 {
     public class User : EntityBase
     {

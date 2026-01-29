@@ -1,4 +1,5 @@
-﻿using MessageAPI.Infrastructure.Context;
+﻿using MessageAPI.Abstractions.DbContracts;
+using MessageAPI.Infrastructure.Context;
 using MessageAPI.Infrastructure.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +30,8 @@ namespace MessageAPI.Infrastructure.Settings
                 options.AddInterceptors(sp.GetRequiredService<AuditSaveChangesInterceptor>());
 
             });
+
+            services.AddScoped<IAppDbContext, AppDbContext>();
 
             return services;
         }

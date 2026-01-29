@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MessageAPI.Infrastructure.Models
+namespace MessageAPI.Domain.DbModels
 {
     public abstract class EntityBase
     {
@@ -14,13 +14,13 @@ namespace MessageAPI.Infrastructure.Models
         public string? CreatedBy { get; private set; }
         public string? UpdatedBy { get; private set; }
 
-        internal void SetCreated(DateTime utcNow, string? user)
+        public void SetCreated(DateTime utcNow, string? user)
         {
             CreatedAtUtc = utcNow;
             CreatedBy = user;
         }
 
-        internal void SetUpdated(DateTime utcNow, string? user)
+        public void SetUpdated(DateTime utcNow, string? user)
         {
             UpdatedAtUtc = utcNow;
             UpdatedBy = user;
