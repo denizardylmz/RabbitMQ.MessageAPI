@@ -1,3 +1,6 @@
+using MessageAPI.API.Infrastructure;
+using MessageAPI.Infrastructure.Interceptors;
+using MessageAPI.Infrastructure.Settings;
 using MessageService.Contracts;
 using MessageService.Settings;
 using TelegramBotService.Contracts;
@@ -8,14 +11,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<MessageBusSettings>(
     builder.Configuration.GetSection("MessageBusSettings"));
 
-builder.Services.AddMessagingServices();
-
 builder.Services.Configure<TelegramOptions>(
     builder.Configuration.GetSection("Telegram"));
 
-builder.Services.AddTelegramServices();
+builder.Services.AddOptions<DatabaseOptions>()
+    .Bind(builder.Configuration.GetSection("DatabaseOptions"))
+    .Validate(o => !string.IsNullOrWhiteSpace(o.ConnectionString), "DatabaseOptions:ConnectionString is required.")
+    .ValidateOnStart();
 
+builder.Services.Configure<DatabaseOptions>(
+    builder.Configuration.GetSection("DatabaseOptions"));
+
+builder.Services.AddMessagingServices();
 builder.Services.AddApplicaitonServices();
+builder.Services.AddTelegramServices();
+builder.Services.AddDBServices();
 
 var app = builder.Build();
 
@@ -41,6 +51,9 @@ public static class ServiceExtensions
     public static IServiceCollection AddApplicaitonServices(
         this IServiceCollection services)
     {
+
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUser, HttpCurrentUser>();
 
         services.AddControllers();
         //servicesout configuring OpenAPI at https://aka.ms/aspnet/openapi
