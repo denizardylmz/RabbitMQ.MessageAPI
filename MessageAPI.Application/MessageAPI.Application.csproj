@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MessageAPI.Abstractions\MessageAPI.Abstractions.csproj" />
+    <ProjectReference Include="..\TelegramBotService\TelegramBotService.csproj" />
   </ItemGroup>
 
 </Project>

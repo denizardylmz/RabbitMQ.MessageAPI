@@ -1,5 +1,6 @@
 ﻿//using Microsoft.Extensions.Hosting;
 //using Microsoft.Extensions.Logging;
+//using TelegramBotService.Models;
 //using TelegramBotService.Services;
 
 //public sealed class TelegramPollingWorker : BackgroundService
@@ -19,7 +20,7 @@
 
 //    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 //    {
-//        Console.WriteLine("Telegram polling started.");
+//        _log.LogInformation("Telegram polling started.");
 
 //        while (!stoppingToken.IsCancellationRequested)
 //        {
@@ -34,33 +35,56 @@
 //                {
 //                    _offset = u.UpdateId + 1;
 
-
-//                    #region CallbackQuery Handler
+//                    // --------------------
+//                    // CallbackQuery Handler
+//                    // --------------------
 //                    if (u.CallbackQuery is not null)
 //                    {
 //                        var cb = u.CallbackQuery;
 
-//                        await _tg.AnswerCallbackAsync(cb.Id, stoppingToken, text: "Talebiniz Alındı", showAlert: true);
+//                        // ACK (spinner kapansın) - bunu try içinde tutuyoruz
+//                        await _tg.AnswerCallbackAsync(cb.Id, stoppingToken, text: "Talebiniz Alındı", showAlert: false);
 
 //                        var data = cb.Data ?? "";
 //                        var msg = cb.Message;
-//                        if (msg is null)
-//                        {
-//                            continue;
-//                        }
-
-//                        await Task.Delay(1000, stoppingToken);
+//                        if (msg is null) continue;
 
 //                        var chatId = msg.Chat.Id;
 
 //                        switch (data)
 //                        {
-//                            case "test:cancel":
+//                            case "button:cancel":
 //                                await _tg.EditMessageTextAsync(chatId, msg.MessageId, "Cancel seçildi.", stoppingToken);
+//                                await SendMenu(chatId, stoppingToken);
 //                                break;
 
-//                            case "test:ok":
+//                            case "button:ok":
 //                                await _tg.EditMessageTextAsync(chatId, msg.MessageId, "Ok Seçildi ✅", stoppingToken);
+//                                await SendMenu(chatId, stoppingToken);
+
+//                                break;
+
+//                            case "menu:shiftIn":
+//                                await _tg.EditMessageTextAsync(chatId, msg.MessageId, "Mesai Başladı", stoppingToken);
+//                                await SendMenu(chatId, stoppingToken);
+
+//                                break;
+
+//                            case "menu:shiftOut":
+//                                await _tg.EditMessageTextAsync(chatId, msg.MessageId, "Mesai Bitti", stoppingToken);
+//                                await SendMenu(chatId, stoppingToken);
+//                                break;
+
+//                            case "menu:breakStart":
+//                                await _tg.EditMessageTextAsync(chatId, msg.MessageId, "Mola Başladı", stoppingToken);
+//                                await SendMenu(chatId, stoppingToken);
+
+//                                break;
+
+//                            case "menu:breakEnd":
+//                                await _tg.EditMessageTextAsync(chatId, msg.MessageId, "Mola Bitti", stoppingToken);
+//                                await SendMenu(chatId, stoppingToken);
+
 //                                break;
 
 //                            default:
@@ -70,9 +94,10 @@
 
 //                        continue;
 //                    }
-//                    #endregion
 
-//                    #region Message Handler
+//                    // --------------
+//                    // Message Handler
+//                    // --------------
 //                    var msg2 = u.Message;
 //                    if (msg2?.Text is null) continue;
 
@@ -81,7 +106,19 @@
 //                    switch (cmd)
 //                    {
 //                        case "/start":
-//                            await _tg.SendMessageAsync(msg2.Chat.Id, "Merhaba. /echo <text> deneyebilirsin.", stoppingToken);
+
+//                            var message = SendMessageRequest.Create(msg2.Chat.Id).WithText("Mesai Botu ; ").WithInlineKeyboard(kb => kb.Row(
+//                                                                                                                                    InlineKeyboardButton.Create("Mesai Başlat", "menu:shiftIn"),
+//                                                                                                                                    InlineKeyboardButton.Create("Mesai Bitir", "menu:shiftOut")
+//                                                                                                                                )
+//                                                                                                                                .Row(
+//                                                                                                                                    InlineKeyboardButton.Create("Mola Başlat", "menu:breakStart"),
+//                                                                                                                                    InlineKeyboardButton.Create("Mola Bitir", "menu:breakEnd"))
+//                                                                                                                                .Row(
+//                                                                                                                                    InlineKeyboardButton.Create("ℹ️ Yardım", "help")
+//                                                                                                                                ));
+
+//                            await _tg.SendMessageAsync(message, stoppingToken);
 //                            break;
 
 //                        case "/echo":
@@ -96,41 +133,82 @@
 //                            await _tg.SendMessageAsync(msg2.Chat.Id, "Bilinmeyen komut. /start yaz.", stoppingToken);
 //                            break;
 //                    }
-//                    #endregion
-
-
 //                }
 //            }
-//            catch (TaskCanceledException) when (stoppingToken.IsCancellationRequested)
+//            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
 //            {
+//                _log.LogInformation("Telegram polling stopping (cancellation requested).");
+//                break;
+//            }
+//            catch (TelegramTransportException ex)
+//            {
+//                _log.LogWarning(ex, "Telegram transport error. Will retry shortly.");
+//                await SafeDelay(2000, stoppingToken);
+//            }
+//            catch (TelegramApiException ex)
+//            {
+//                _log.LogError("Telegram API error. StatusCode={StatusCode} Body={Body}", ex.StatusCode, ex.TelegramResponse);
 
+//                var delayMs = ex.StatusCode == 401 ? 10_000 : 2_000;
+//                await SafeDelay(delayMs, stoppingToken);
 //            }
 //            catch (Exception ex)
 //            {
-//                Console.WriteLine($"Polling loop error. EX: {ex.Message}");
-//                await Task.Delay(1000, stoppingToken);
+//                _log.LogError(ex, "Polling loop unexpected error.");
+//                await SafeDelay(2000, stoppingToken);
 //            }
 //        }
 //    }
+
+//    private static async Task SafeDelay(int milliseconds, CancellationToken ct)
+//    {
+//        try { await Task.Delay(milliseconds, ct); }
+//        catch (OperationCanceledException) { }
+//    }
+
+//    private async Task SendMenu(long chatId, CancellationToken cancellationToken)
+//    {
+//        var message = SendMessageRequest.Create(chatId).WithText("Merhaba").WithInlineKeyboard(kb => kb.Row(
+//                                                                                                                InlineKeyboardButton.Create("Mesai Başlat", "menu:shiftIn"),
+//                                                                                                                InlineKeyboardButton.Create("Mesai Bitir", "menu:shiftOut")
+//                                                                                                            )
+//                                                                                                            .Row(
+//                                                                                                                InlineKeyboardButton.Create("Mola Başlat", "menu:breakStart"),
+//                                                                                                                InlineKeyboardButton.Create("Mola Bitir", "menu:breakEnd"))
+//                                                                                                            .Row(
+//                                                                                                                InlineKeyboardButton.Create("ℹ️ Yardım", "help")
+//                                                                                                            ));
+
+//        await _tg.SendMessageAsync(message, cancellationToken);
+//    }
 //}
+
+
 
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using TelegramBotService.Contracts;
 using TelegramBotService.Models;
 using TelegramBotService.Services;
 
 public sealed class TelegramPollingWorker : BackgroundService
 {
     private readonly TelegramClient _tg;
-    private readonly CommandRouter _router;
+    private readonly IUpdateHandler _handler;
+    private readonly ITelegramEffectApplier _applier;
     private readonly ILogger<TelegramPollingWorker> _log;
 
     private long? _offset;
 
-    public TelegramPollingWorker(TelegramClient tg, CommandRouter router, ILogger<TelegramPollingWorker> log)
+    public TelegramPollingWorker(
+        TelegramClient tg,
+        IUpdateHandler handler,
+        ITelegramEffectApplier applier,
+        ILogger<TelegramPollingWorker> log)
     {
         _tg = tg;
-        _router = router;
+        _handler = handler;
+        _applier = applier;
         _log = log;
     }
 
@@ -151,66 +229,34 @@ public sealed class TelegramPollingWorker : BackgroundService
                 {
                     _offset = u.UpdateId + 1;
 
-                    // --------------------
-                    // CallbackQuery Handler
-                    // --------------------
+                    AppUpdate? appUpdate = null;
+
+                    // Callback
                     if (u.CallbackQuery is not null)
                     {
                         var cb = u.CallbackQuery;
-
-                        // ACK (spinner kapansın) - bunu try içinde tutuyoruz
-                        await _tg.AnswerCallbackAsync(cb.Id, stoppingToken, text: "Talebiniz Alındı", showAlert: true);
-
-                        var data = cb.Data ?? "";
                         var msg = cb.Message;
                         if (msg is null) continue;
 
-                        var chatId = msg.Chat.Id;
-
-                        switch (data)
-                        {
-                            case "test:cancel":
-                                await _tg.EditMessageTextAsync(chatId, msg.MessageId, "Cancel seçildi.", stoppingToken);
-                                break;
-
-                            case "test:ok":
-                                await _tg.EditMessageTextAsync(chatId, msg.MessageId, "Ok Seçildi ✅", stoppingToken);
-                                break;
-
-                            default:
-                                await _tg.SendMessageAsync(chatId, $"Bilinmeyen buton: {data}", stoppingToken);
-                                break;
-                        }
-
-                        continue;
+                        appUpdate = new AppCallback(
+                            ChatId: msg.Chat.Id,
+                            MessageId: msg.MessageId,
+                            CallbackId: cb.Id,
+                            Data: cb.Data ?? ""
+                        );
                     }
-
-                    // --------------
-                    // Message Handler
-                    // --------------
-                    var msg2 = u.Message;
-                    if (msg2?.Text is null) continue;
-
-                    var (cmd, args) = _router.Parse(msg2.Text);
-
-                    switch (cmd)
+                    // Text message
+                    else if (u.Message?.Text is not null)
                     {
-                        case "/start":
-                            await _tg.SendMessageAsync(msg2.Chat.Id, "Merhaba. /echo <text> deneyebilirsin.", stoppingToken);
-                            break;
-
-                        case "/echo":
-                            await _tg.SendMessageAsync(msg2.Chat.Id, string.IsNullOrWhiteSpace(args) ? "Ne echo’layayım?" : args, stoppingToken);
-                            break;
-
-                        case "_text":
-                            await _tg.SendMessageAsync(msg2.Chat.Id, "Komutlar: /start, /echo <text>", stoppingToken);
-                            break;
-
-                        default:
-                            await _tg.SendMessageAsync(msg2.Chat.Id, "Bilinmeyen komut. /start yaz.", stoppingToken);
-                            break;
+                        appUpdate = new AppText(u.Message.Chat.Id, u.Message.Text);
                     }
+
+                    if (appUpdate is null) continue;
+
+                    var effects = await _handler.HandleAsync(appUpdate, stoppingToken);
+
+                    foreach (var ef in effects)
+                        await _applier.ApplyAsync(ef, stoppingToken);
                 }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -226,7 +272,6 @@ public sealed class TelegramPollingWorker : BackgroundService
             catch (TelegramApiException ex)
             {
                 _log.LogError("Telegram API error. StatusCode={StatusCode} Body={Body}", ex.StatusCode, ex.TelegramResponse);
-
                 var delayMs = ex.StatusCode == 401 ? 10_000 : 2_000;
                 await SafeDelay(delayMs, stoppingToken);
             }
@@ -244,4 +289,3 @@ public sealed class TelegramPollingWorker : BackgroundService
         catch (OperationCanceledException) { }
     }
 }
-

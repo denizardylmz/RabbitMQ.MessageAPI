@@ -19,7 +19,8 @@ namespace TelegramBotService.Settings
                 http.Timeout = TimeSpan.FromSeconds(10);
             });
 
-            services.AddSingleton<CommandRouter>();
+            services.AddSingleton<ITelegramEffectApplier, TelegramEffectApplier>();
+
             services.AddHostedService<TelegramPollingWorker>();
 
             return services;
