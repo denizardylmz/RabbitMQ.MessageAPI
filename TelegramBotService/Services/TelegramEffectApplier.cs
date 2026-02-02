@@ -41,7 +41,6 @@ namespace TelegramBotService.Services
                     break;
 
                 default:
-                    // Bilinmeyen effect’leri loglamak istersen buraya logger ekleyebilirsin
                     break;
             }
         }
