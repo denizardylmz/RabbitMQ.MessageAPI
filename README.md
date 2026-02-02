@@ -1,46 +1,40 @@
-# RabbitMQ.MessageAPI
+**MessageAPI**
 
-A lightweight .NET Web API project demonstrating event-driven communication using RabbitMQ.
+MessageAPI is an event-driven backend system built with .NET 10 and designed according to Clean Architecture principles.
+The project aims to provide a clean, modular, and extensible foundation for handling business workflows through asynchronous messaging and conversational user interactions.
 
-This project showcases a simple **producer–consumer** architecture where messages are published via an HTTP API and processed asynchronously by a background worker.
+The system integrates:
 
-## Purpose
-The goal of this project is to demonstrate:
-- Basic RabbitMQ messaging concepts
-- Event-driven communication in .NET
-- Separation of concerns between message producers and consumers
+RabbitMQ for asynchronous communication and background processing
 
-## Architecture Overview
-- **Producer**: ASP.NET Core Web API endpoint publishes messages to RabbitMQ
-- **Broker**: RabbitMQ (Direct Exchange)
-- **Consumer**: BackgroundService that consumes and processes messages
+Telegram Bot as a lightweight, real-time user interaction layer
 
-## Tech Stack
-- .NET 10
-- ASP.NET Core Web API
-- RabbitMQ
-- RabbitMQ.Client
-- OpenAPI / Swagger
+A future-ready authentication and authorization model, implemented in the Application layer
 
-## RabbitMQ Setup
-- Exchange: `ex.messages` (Direct, Durable)
-- Queue: `q.messages` (Durable)
-- Routing Key: `messages.create`
-- Message acknowledgment: Manual ACK
-- Prefetch count: `1`
+The architecture is intentionally designed to separate business rules from infrastructure and delivery mechanisms, ensuring long-term maintainability and scalability as the system grows.
 
-## How It Works
-1. A client sends a request to the API endpoint
-2. The API publishes a message to RabbitMQ
-3. The consumer listens to the queue
-4. Upon successful processing, the message is acknowledged
+**Project Goals**
 
-## Running the Project
+The main goals of this project are:
 
-### Start RabbitMQ (Docker)
-```bash
-docker run -d --name rabbitmq \
-  -p 5672:5672 -p 15672:15672 \
-  -e RABBITMQ_DEFAULT_USER=admin \
-  -e RABBITMQ_DEFAULT_PASS=admin \
-  rabbitmq:3-management
+Correct application of Clean Architecture
+Business logic is isolated from external frameworks, databases, message brokers, and UI technologies. Dependencies always point inward, and each layer has a clearly defined responsibility.
+
+Asynchronous, event-driven workflow management
+RabbitMQ is used to publish and consume business messages, enabling long-running or resource-intensive operations to be processed outside the HTTP request lifecycle.
+
+Conversational user interaction via Telegram
+Telegram acts as an external interaction channel where users can trigger actions, receive system feedback, and interact with workflows without a traditional web interface.
+
+Centralized business logic in the Application layer
+All core decisions and workflows are handled in the Application layer, including:
+
+user authentication and identity validation
+
+authorization and permission checks
+
+business rules and use-case orchestration
+
+coordination between RabbitMQ producers and consumers
+
+API controllers, Telegram bot handlers, and message consumers are kept thin and do not contain business logic; they only act as entry points that delegate work to the Application layer.
