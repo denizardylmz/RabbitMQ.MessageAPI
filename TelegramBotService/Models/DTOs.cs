@@ -45,20 +45,45 @@ namespace TelegramBotService.Models
         [JsonPropertyName("chat")]
         public Chat Chat { get; set; } = default!;
 
+        [JsonPropertyName("from")]
+        public TgUser From { get; set; } = default!;
+
+        [JsonPropertyName("entities")]
+        public List<TgEntity> Entities { get; set; } = new();
+
+        [JsonPropertyName("date")]
+        public long? Date { get; set; }
+
         [JsonPropertyName("text")]
         public string? Text { get; set; }
+
+        [JsonIgnore]
+        public DateTime DateUtc =>
+            DateTimeOffset.FromUnixTimeSeconds(Date.Value).UtcDateTime;
+
     }
 
     public sealed class Chat
     {
         [JsonPropertyName("id")]
         public long Id { get; set; }
+
+        [JsonPropertyName("first_name")]
+        public string? Firstname { get; set; }
+        
+        [JsonPropertyName("username")]
+        public string? Username { get; set; }
+        
+        [JsonPropertyName("type")]
+        public string? Type { get; set; }
     }
 
     public sealed class TgUser
     {
         [JsonPropertyName("id")]
         public long Id { get; set; }
+        [JsonPropertyName("is_bot")]
+        public bool? IsBot { get; set; }
 
         [JsonPropertyName("username")]
         public string? Username { get; set; }
@@ -68,8 +93,22 @@ namespace TelegramBotService.Models
 
         [JsonPropertyName("last_name")]
         public string? LastName { get; set; }
+        
+        [JsonPropertyName("language_code")]
+        public string? LanguageCode { get; set; }
     }
 
+    public class TgEntity
+    {
+        [JsonPropertyName("offset")]
+        public int Offset { get; set; }
+        
+        [JsonPropertyName("length")]
+        public int Length { get; set; }
+
+        [JsonPropertyName("type")]
+        public string? Type { get; set; }
+    }
     #endregion
 
     #region CallbackQuery (Incoming)

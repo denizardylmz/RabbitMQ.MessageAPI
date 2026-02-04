@@ -1,6 +1,8 @@
-﻿using MessageAPI.Abstractions.DbContracts;
+﻿using MessageAPI.Abstractions.Contracts;
+using MessageAPI.Abstractions.DbContracts;
 using MessageAPI.Infrastructure.Context;
 using MessageAPI.Infrastructure.Interceptors;
+using MessageAPI.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -15,6 +17,7 @@ namespace MessageAPI.Infrastructure.Settings
         public static IServiceCollection AddDBServices(this IServiceCollection services)
         {
             services.AddScoped<AuditSaveChangesInterceptor>();
+            services.AddMemoryCache();
 
             services.AddDbContext<AppDbContext>((sp, options) =>
             {
@@ -32,6 +35,8 @@ namespace MessageAPI.Infrastructure.Settings
             });
 
             services.AddScoped<IAppDbContext, AppDbContext>();
+            services.AddSingleton<IUserContextCache, MemoryUserContextCache>();
+
 
             return services;
         }

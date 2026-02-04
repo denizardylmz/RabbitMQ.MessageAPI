@@ -53,6 +53,7 @@ public sealed class TelegramPollingWorker : BackgroundService
 
                         appUpdate = new AppCallback(
                             ChatId: msg.Chat.Id,
+                            UserId: cb.From.Id,
                             MessageId: msg.MessageId,
                             CallbackId: cb.Id,
                             Data: cb.Data ?? ""
@@ -61,7 +62,7 @@ public sealed class TelegramPollingWorker : BackgroundService
                     // Text message
                     else if (u.Message?.Text is not null)
                     {
-                        appUpdate = new AppText(u.Message.Chat.Id, u.Message.Text);
+                        appUpdate = new AppText(u.Message.Chat.Id, UserId: u.Message.From.Id, u.Message.Text);
                     }
 
                     if (appUpdate is null) continue;

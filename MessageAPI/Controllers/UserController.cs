@@ -15,10 +15,16 @@ namespace MessageAPI.API.Controllers
         public UsersController(CreateUserHandler handler) => _handler = handler;
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateUserRequest req, CancellationToken ct)
+        public async Task<IActionResult> GetPin(CreateUserRequest req, CancellationToken ct)
         {
-            var id = await _handler.Handle(new CreateUserCommand(req.Username, req.Email), ct);
-            return CreatedAtAction(nameof(GetById), new { id }, null);
+            var pin = await _handler.Handle(new CreateUserCommand(req.Username, req.Email), ct);
+
+            if (string.IsNullOrWhiteSpace(pin))
+            {
+                return StatusCode(StatusCodes.Status401Unauthorized, "User Not Found.");
+            }
+            var response = new { Pin = pin };
+            return Ok(response);
         }
 
         [HttpGet("{id:int}")]

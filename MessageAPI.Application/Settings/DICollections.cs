@@ -14,6 +14,10 @@ namespace MessageAPI.Application.Settings
         public static IServiceCollection AddApplicaitonServices(this IServiceCollection services)
         {
             services.AddScoped<CreateUserHandler>();
+            services.AddScoped<ResolveUserHandler>();
+            services.AddScoped<CheckUserPinHandler>();
+            
+
 
             services.AddSingleton<IUpdateHandler, UpdateHandler>();
 

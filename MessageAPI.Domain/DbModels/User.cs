@@ -8,6 +8,8 @@ namespace MessageAPI.Domain.DbModels
     {
         public string Username { get; set; } = null!;
         public string Email { get; set; } = null!;
-
+        public long? TelegramUserId { get; set; }
+        public string? ActivationPin { get; set; }
+        public DateTime? PinExpireAt { get; set; }
     }
 }

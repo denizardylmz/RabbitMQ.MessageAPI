@@ -4,16 +4,17 @@ using System.Text;
 
 namespace TelegramBotService.Contracts
 {
-    public abstract record AppUpdate(long ChatId);
+    public abstract record AppUpdate(long ChatId, long UserId);
 
-    public sealed record AppText(long ChatId, string Text) : AppUpdate(ChatId);
+    public sealed record AppText(long ChatId, long UserId, string Text) : AppUpdate(ChatId, UserId);
 
     public sealed record AppCallback(
         long ChatId,
+        long UserId,
         long MessageId,
         string CallbackId,
         string Data
-    ) : AppUpdate(ChatId);
+    ) : AppUpdate(ChatId, UserId);
 
     public interface IAppEffect { }
 
