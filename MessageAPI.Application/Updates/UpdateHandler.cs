@@ -153,6 +153,7 @@ namespace MessageAPI.Application.Updates
                 }
                 else
                 {
+
                     return new List<IAppEffect>(new IAppEffect[]
                     {
                         new SendText(txt.ChatId, "Geçersiz PIN Kodu.")
