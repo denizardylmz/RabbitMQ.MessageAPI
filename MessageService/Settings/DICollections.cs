@@ -16,7 +16,11 @@ namespace MessageService.Settings
 
             services.AddHostedService<ReceiverService>();
             services.AddSingleton<MessageService.Contracts.IMessageService, MessageService.Services.MessageService>();
-
+            services.AddSingleton<IMessageBusPublisher>(sp =>
+            {
+                var settings = sp.GetRequiredService<IOptions<MessageBusSettings>>().Value;
+                return new RabbitMqPublisher(settings);
+            });
             return services;
         }
     }

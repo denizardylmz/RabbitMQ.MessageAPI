@@ -46,70 +46,86 @@ namespace MessageService.Services
                 await _connection.DisposeAsync();
 
         }
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            const string exchangeName = "ex.erp";
+            const string queueName = "q.dev.catchall";
+            const string bindingKey = "#";
 
-            const string exchangeName = "ex.messages";
-            const string queueName = "q.messages";
-            const string routingKey = "messages.create";
+            IChannel? channel = null;
 
             try
             {
                 _connection = await GetConnectionAsync();
-                var channel = await _connection.CreateChannelAsync();
+                channel = await _connection.CreateChannelAsync(cancellationToken: stoppingToken);
 
                 await channel.ExchangeDeclareAsync(
                     exchange: exchangeName,
-                    type: ExchangeType.Direct,
+                    type: ExchangeType.Topic,
                     durable: true,
                     autoDelete: false,
-                    arguments: null);
+                    arguments: null,
+                    cancellationToken: stoppingToken);
 
                 await channel.QueueDeclareAsync(
                     queue: queueName,
                     durable: true,
                     exclusive: false,
                     autoDelete: false,
-                    arguments: null);
+                    arguments: new Dictionary<string, object?>
+                    {
+                        ["x-message-ttl"] = 1000 * 60 * 60 * 24
+                    },
+                    cancellationToken: stoppingToken);
 
                 await channel.QueueBindAsync(
                     queue: queueName,
                     exchange: exchangeName,
-                    routingKey: routingKey);
+                    routingKey: bindingKey,
+                    arguments: null,
+                    cancellationToken: stoppingToken);
 
-                await channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 1, global: false);
+                await channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 10, global: false, cancellationToken: stoppingToken);
 
                 var consumer = new AsyncEventingBasicConsumer(channel);
+
                 consumer.ReceivedAsync += async (_, ea) =>
                 {
                     try
                     {
-                        await DoWorkAsync(channel, _, ea, stoppingToken);
+                        var rk = ea.RoutingKey;
+                        var body = System.Text.Encoding.UTF8.GetString(ea.Body.ToArray());
+                        _logger.LogInformation("DEV CATCHALL | rk={rk} | msg={msg}", rk, body);
+
+                        await channel.BasicAckAsync(ea.DeliveryTag, multiple: false, cancellationToken: stoppingToken);
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        await channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: true);
-                        throw;
+                        _logger.LogError(ex, "DEV CATCHALL consume failed, requeueing");
+                        await channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: true, cancellationToken: stoppingToken);
                     }
                 };
 
-                await channel.BasicConsumeAsync(
-                    queue: queueName,
-                    autoAck: false,
-                    consumer: consumer);
+                await channel.BasicConsumeAsync(queue: queueName, autoAck: false, consumer: consumer, cancellationToken: stoppingToken);
 
-
+                await Task.Delay(Timeout.Infinite, stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
-                await DisposeConnectionAsync();
+
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Worker crashed.");
+            }
+            finally
+            {
+                if (channel is not null) await channel.DisposeAsync();
                 await DisposeConnectionAsync();
-                _logger.LogError(ex, "Worker crashed; will continue.");
             }
         }
+
 
 
         private static async Task DoWorkAsync(IChannel channel, object model, BasicDeliverEventArgs ea, CancellationToken ct)

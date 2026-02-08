@@ -16,7 +16,13 @@ namespace MessageAPI.Application.Settings
             services.AddScoped<CreateUserHandler>();
             services.AddScoped<ResolveUserHandler>();
             services.AddScoped<CheckUserPinHandler>();
-            
+
+
+            services.AddScoped<SendShiftStartHandler>();
+            services.AddScoped<SendShiftEndHandler>();
+            services.AddScoped<SendBreakStartHandler>();
+            services.AddScoped<SendBreakEndHandler>();
+
 
 
             services.AddSingleton<IUpdateHandler, UpdateHandler>();

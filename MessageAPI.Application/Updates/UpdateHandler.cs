@@ -1,6 +1,7 @@
 ﻿
 using MessageAPI.Application.Handlers;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,10 +13,12 @@ namespace MessageAPI.Application.Updates
     public sealed class UpdateHandler : IUpdateHandler
     {
         private readonly IServiceScopeFactory _scopeFactory;
+        private readonly ILogger<UpdateHandler> _logger;
 
-        public UpdateHandler(IServiceScopeFactory scopeFactory)
+        public UpdateHandler(IServiceScopeFactory scopeFactory, ILogger<UpdateHandler> logger)
         {
             _scopeFactory = scopeFactory;
+            _logger = logger;
         }
 
         public async Task<IReadOnlyList<IAppEffect>> HandleAsync(AppUpdate update, CancellationToken ct)
@@ -68,7 +71,7 @@ namespace MessageAPI.Application.Updates
             return false;
         }
 
-        private Task<IReadOnlyList<IAppEffect>> HandleCallback(AppCallback cb, CancellationToken ct)
+        private async Task<IReadOnlyList<IAppEffect>> HandleCallback(AppCallback cb, CancellationToken ct)
         {
             var data = cb.Data ?? "";
 
@@ -90,23 +93,67 @@ namespace MessageAPI.Application.Updates
                     break;
 
                 case "menu:shiftIn":
-                    effects.Add(new EditText(cb.ChatId, cb.MessageId, "Mesai Başladı"));
-                    effects.Add(new ShowMainMenu(cb.ChatId));
+                    {
+                        try
+                        {
+                            using var scope = _scopeFactory.CreateScope();
+                            var handler = scope.ServiceProvider.GetRequiredService<SendShiftStartHandler>();
+                            await handler.Handle(new ShiftCommand(cb.UserId, DateTime.UtcNow), ct);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "shiftIn failed");
+                            effects.Add(new EditText(cb.ChatId, cb.MessageId, "Mesai başlatılamadı. Tekrar dener misiniz?"));
+                        }
+                    }
                     break;
 
                 case "menu:shiftOut":
-                    effects.Add(new EditText(cb.ChatId, cb.MessageId, "Mesai Bitti"));
-                    effects.Add(new ShowMainMenu(cb.ChatId));
+                    {
+                        try
+                        {
+                            using var scope = _scopeFactory.CreateScope();
+                            var handler = scope.ServiceProvider.GetRequiredService<SendShiftEndHandler>();
+                            await handler.Handle(new ShiftCommand(cb.UserId, DateTime.UtcNow), ct);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "shiftEnd failed");
+                            effects.Add(new EditText(cb.ChatId, cb.MessageId, "Mesai bitirilemedi. Tekrar dener misiniz?"));
+                        }
+                    }
                     break;
 
                 case "menu:breakStart":
-                    effects.Add(new EditText(cb.ChatId, cb.MessageId, "Mola Başladı"));
-                    effects.Add(new ShowMainMenu(cb.ChatId));
+                    {
+                        try
+                        {
+                            using var scope = _scopeFactory.CreateScope();
+                            var handler = scope.ServiceProvider.GetRequiredService<SendBreakStartHandler>();
+                            await handler.Handle(new ShiftCommand(cb.UserId, DateTime.UtcNow), ct);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Break start failed");
+                            effects.Add(new EditText(cb.ChatId, cb.MessageId, "Mola başlatılamadı. Tekrar dener misiniz?"));
+                        }
+                    }
                     break;
 
                 case "menu:breakEnd":
-                    effects.Add(new EditText(cb.ChatId, cb.MessageId, "Mola Bitti"));
-                    effects.Add(new ShowMainMenu(cb.ChatId));
+                    {
+                        try
+                        {
+                            using var scope = _scopeFactory.CreateScope();
+                            var handler = scope.ServiceProvider.GetRequiredService<SendBreakEndHandler>();
+                            await handler.Handle(new ShiftCommand(cb.UserId, DateTime.UtcNow), ct);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Break end failed");
+                            effects.Add(new EditText(cb.ChatId, cb.MessageId, "Mola bitirilemedi. Tekrar dener misiniz?"));
+                        }
+                    }
                     break;
 
                 case "help":
@@ -119,7 +166,7 @@ namespace MessageAPI.Application.Updates
                     break;
             }
 
-            return Task.FromResult<IReadOnlyList<IAppEffect>>(effects);
+            return effects;
         }
 
         private async Task<IReadOnlyList<IAppEffect>> HandleText(AppText txt, CancellationToken ct)
