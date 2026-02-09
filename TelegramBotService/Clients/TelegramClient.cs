@@ -1,11 +1,17 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using MessageAPI.Domain.TelegramDto;
+using System.ComponentModel.DataAnnotations;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using TelegramBotService.Models;
 
 public sealed class TelegramClient
 {
     private readonly HttpClient _http;
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
 
     public TelegramClient(HttpClient http) => _http = http;
 
@@ -81,6 +87,7 @@ public sealed class TelegramClient
             throw new TelegramTransportException("Telegram HTTP error", ex);
         }
     }
+
     public sealed record TgError(bool ok, int error_code, string description);
     public async Task AnswerCallbackAsync( string callbackQueryId, CancellationToken ct, string? text = null, bool showAlert = false)
     {
@@ -111,56 +118,39 @@ public sealed class TelegramClient
             throw new TelegramTransportException("Telegram answerCallbackQuery HTTP error", ex);
         }
     }
-    public async Task EditMessageTextAsync(long chatId, long messageId, string text, CancellationToken ct)
-    {
-        if (chatId == 0) throw new ArgumentException("chatId cannot be 0", nameof(chatId));
-        if (messageId == 0) throw new ArgumentException("messageId cannot be 0", nameof(messageId));
-        if (string.IsNullOrWhiteSpace(text)) throw new ArgumentException("text cannot be empty", nameof(text));
 
-        var payload = new
+    public Task EditMessageTextAsync(long chatId, long messageId, string text, CancellationToken ct)
+        => EditMessageTextAsync(chatId, messageId, text, replyMarkup: null, ct);
+
+    public Task EditMessageTextAsync(long chatId, long messageId, string text, InlineKeyboardMarkup? replyMarkup, CancellationToken ct)
+        => EditMessageTextAsync(new EditMessageTextRequest
         {
-            chat_id = chatId,
-            message_id = messageId,
-            text
-        };
+            ChatId = chatId,
+            MessageId = messageId,
+            Text = text,
+            ReplyMarkup = replyMarkup
+        }, ct);
+
+    public async Task EditMessageTextAsync(EditMessageTextRequest message, CancellationToken ct)
+    {
+        if (message.ChatId == 0) throw new ArgumentException("chatId cannot be 0", nameof(message.ChatId));
+        if (message.MessageId == 0) throw new ArgumentException("messageId cannot be 0", nameof(message.MessageId));
+        if (string.IsNullOrWhiteSpace(message.Text)) throw new ArgumentException("text cannot be empty", nameof(message.Text));
 
         try
         {
-            using var resp = await _http.PostAsJsonAsync("editMessageText", payload, ct);
+            using var resp = await _http.PostAsJsonAsync("editMessageText", message, JsonOptions, ct);
             var body = await resp.Content.ReadAsStringAsync(ct);
 
             if (!resp.IsSuccessStatusCode)
                 throw new TelegramApiException((int)resp.StatusCode, body);
         }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
-        {
-            throw;
-        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
         catch (HttpRequestException ex)
         {
             throw new TelegramTransportException("Telegram editMessageText HTTP error", ex);
         }
     }
-
-    public async Task EditMessageTextAsync(SendMessageRequest message , CancellationToken ct)
-    {
-        try
-        {
-            using var resp = await _http.PostAsJsonAsync("editMessageText", message, ct);
-            var body = await resp.Content.ReadAsStringAsync(ct);
-
-            if (!resp.IsSuccessStatusCode)
-                throw new TelegramApiException((int)resp.StatusCode, body);
-        }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new TelegramTransportException("Telegram editMessageText HTTP error", ex);
-        }
-    }
-
-
 }
+
+

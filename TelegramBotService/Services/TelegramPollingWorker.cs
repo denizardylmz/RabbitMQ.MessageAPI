@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using MessageAPI.Abstractions.Contracts;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using TelegramBotService.Contracts;
 using TelegramBotService.Models;

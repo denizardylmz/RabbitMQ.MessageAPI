@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MessageAPI.Abstractions.Contracts;
+using MessageAPI.Domain.TelegramDto;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using TelegramBotService.Contracts;
@@ -33,8 +35,10 @@ namespace TelegramBotService.Services
                     break;
 
                 case EditText e:
-                    await _tg.EditMessageTextAsync(e.ChatId, e.MessageId, e.Text, ct);
-                    break;
+                    {
+                        await _tg.EditMessageTextAsync(e.ChatId, e.MessageId, e.Text, e.Keyboard, ct);
+                        break;
+                    }
 
                 case ShowMainMenu m:
                     await SendMenu(m.ChatId, ct);
@@ -65,5 +69,9 @@ namespace TelegramBotService.Services
 
             return _tg.SendMessageAsync(message, ct);
         }
+
+
+
+
     }
 }

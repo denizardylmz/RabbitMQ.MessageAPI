@@ -1,4 +1,5 @@
-﻿using MessageAPI.Abstractions.DbContracts;
+﻿using MessageAPI.Abstractions.Contracts;
+using MessageAPI.Abstractions.DbContracts;
 using MessageAPI.Application.Handlers;
 using MessageAPI.Application.Updates;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,11 +1,14 @@
 ﻿
+using MessageAPI.Abstractions.Contracts;
 using MessageAPI.Application.Handlers;
+using MessageAPI.Domain.TelegramDto;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using TelegramBotService.Contracts;
+using TelegramBotService.Models;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace MessageAPI.Application.Updates
@@ -47,7 +50,7 @@ namespace MessageAPI.Application.Updates
                                 "Bu kullanıcı henüz yetkilendirilmemiş.\n" +
                                 "Lütfen kurumunuzdan onay alarak erişim talebinde bulunun.\n\n" +
                                 "Giriş için: /login <PIN>"
-                            )
+                                )
                         };
             }
 
@@ -58,7 +61,6 @@ namespace MessageAPI.Application.Updates
                 _ => Array.Empty<IAppEffect>()
             };
         }
-
 
         private  bool IsAnonymousAllowed(AppUpdate update)
         {
@@ -92,38 +94,6 @@ namespace MessageAPI.Application.Updates
                     effects.Add(new ShowMainMenu(cb.ChatId));
                     break;
 
-                case "menu:shiftIn":
-                    {
-                        try
-                        {
-                            using var scope = _scopeFactory.CreateScope();
-                            var handler = scope.ServiceProvider.GetRequiredService<SendShiftStartHandler>();
-                            await handler.Handle(new ShiftCommand(cb.UserId, DateTime.UtcNow), ct);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "shiftIn failed");
-                            effects.Add(new EditText(cb.ChatId, cb.MessageId, "Mesai başlatılamadı. Tekrar dener misiniz?"));
-                        }
-                    }
-                    break;
-
-                case "menu:shiftOut":
-                    {
-                        try
-                        {
-                            using var scope = _scopeFactory.CreateScope();
-                            var handler = scope.ServiceProvider.GetRequiredService<SendShiftEndHandler>();
-                            await handler.Handle(new ShiftCommand(cb.UserId, DateTime.UtcNow), ct);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "shiftEnd failed");
-                            effects.Add(new EditText(cb.ChatId, cb.MessageId, "Mesai bitirilemedi. Tekrar dener misiniz?"));
-                        }
-                    }
-                    break;
-
                 case "menu:breakStart":
                     {
                         try
@@ -155,6 +125,65 @@ namespace MessageAPI.Application.Updates
                         }
                     }
                     break;
+
+                case "menu:shiftIn":
+                    {
+                        try
+                        {
+                            using var scope = _scopeFactory.CreateScope();
+                            var handler = scope.ServiceProvider.GetRequiredService<SendShiftStartHandler>();
+                            await handler.Handle(new ShiftCommand(cb.UserId, DateTime.UtcNow), ct);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "shiftIn failed");
+                            effects.Add(new EditText(cb.ChatId, cb.MessageId, "Mesai başlatılamadı. Tekrar dener misiniz?"));
+                        }
+                    }
+                    break;
+
+                case "menu:shiftOut":
+                    {
+                        effects.Add(new EditText(
+                            cb.ChatId,
+                            cb.MessageId,
+                            "Mesaiyi bitirmek istediğinize emin misiniz?\n\nBu işlem çıkış saatinizi kaydeder.",
+                           Keyboard: Keyboards.ConfirmShiftOut()
+                        ));
+                        break;
+                    }
+
+                case "confirm:shiftOut:no":
+                    {
+                        effects.Add(new EditText(cb.ChatId, cb.MessageId, "İşlem iptal edildi.", Keyboard: null));
+
+                        effects.Add(new ShowMainMenu(cb.ChatId, cb.MessageId));
+                        break;
+                    }
+
+                case "confirm:shiftOut:yes":
+                    {
+                        try
+                        {
+                            using var scope = _scopeFactory.CreateScope();
+                            var handler = scope.ServiceProvider.GetRequiredService<SendShiftEndHandler>();
+                            await handler.Handle(new ShiftCommand(cb.UserId, DateTime.UtcNow), ct);
+
+
+                            /// Mesai bitişi sonrası, workerdan gelen messagle ile başka bi handlerda handler edilecek. 
+                            // Bu aşşağıdaki yapı değişecek.
+                            effects.Add(new EditText(cb.ChatId, cb.MessageId, "✅ Mesai kapatıldı.", Keyboard : null));
+                            effects.Add(new ShowMainMenu(cb.ChatId));
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "shiftEnd failed");
+                            effects.Add(new EditText(cb.ChatId, cb.MessageId, "Mesai bitirilemedi. Tekrar dener misiniz?", Keyboard: Keyboards.BackToMenuOnly()));
+                        }
+                        break;
+                    }
+
+
 
                 case "help":
                     effects.Add(new EditText(cb.ChatId, cb.MessageId, "Komutlar: /start, /echo <text>"));
@@ -214,4 +243,53 @@ namespace MessageAPI.Application.Updates
             });
         }
     }
+
+
+    public static class Keyboards
+    {
+        public static InlineKeyboardMarkup ConfirmShiftOut()
+            => new InlineKeyboardMarkup()
+                .Row(
+                    InlineKeyboardButton.Ok("confirm:shiftOut:yes"),
+                    InlineKeyboardButton.Cancel("confirm:shiftOut:no")
+                );
+
+        public static InlineKeyboardMarkup MainMenu()
+            => new InlineKeyboardMarkup()
+                .Row(
+                    InlineKeyboardButton.Create("🟢 Mesai Başlat", "menu:shiftIn"),
+                    InlineKeyboardButton.Create("🔴 Mesai Bitir", "menu:shiftOut")
+                )
+                .Row(
+                    InlineKeyboardButton.Create("☕ Mola Başlat", "menu:breakStart"),
+                    InlineKeyboardButton.Create("✅ Mola Bitir", "menu:breakEnd")
+                )
+                .Row(
+                    InlineKeyboardButton.Create("❓ Yardım", "help")
+                );
+
+        public static InlineKeyboardMarkup BackToMenuOnly()
+            => new InlineKeyboardMarkup()
+                .Row(InlineKeyboardButton.Create("⬅️ Menüye dön", "menu:main"));
+
+
+        private static InlineKeyboardMarkup BuildMainMenuKeyboard()
+    => new InlineKeyboardMarkup()
+        .Row(
+            InlineKeyboardButton.Create("Mesai Başlat", "menu:shiftIn"),
+            InlineKeyboardButton.Create("Mesai Bitir", "menu:shiftOut")
+        )
+        .Row(
+            InlineKeyboardButton.Create("Mola Başlat", "menu:breakStart"),
+            InlineKeyboardButton.Create("Mola Bitir", "menu:breakEnd")
+        )
+        .Row(
+            InlineKeyboardButton.Create("ℹ️ Yardım", "help")
+        );
+
+
+    }
+
+
 }
+
