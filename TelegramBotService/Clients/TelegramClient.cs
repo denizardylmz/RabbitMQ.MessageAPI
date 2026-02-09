@@ -42,34 +42,16 @@ public sealed class TelegramClient
         }
     }
 
+    public Task SendMessageAsync(long chatId, string text, CancellationToken ct) 
+            =>  SendMessageAsync(SendMessageRequest.Create(chatId).WithText(text), ct);
+    public Task SendMessageAsync(long chatId, string text, InlineKeyboardMarkup? replyMarkup, CancellationToken ct)
+        => SendMessageAsync(SendMessageRequest.Create(chatId).WithText(text).WithInlineKeyboard(x => replyMarkup), ct);
 
-    public async Task SendMessageAsync(long chatId, string text, CancellationToken ct)
-    {
-#if DEBUG
-        text += $"  // Chat Id: {chatId}";
-#endif
-
-        var message = SendMessageRequest.Create(chatId).WithText(text);
-
-        try
-        {
-            using var resp = await _http.PostAsJsonAsync("sendMessage", message, ct);
-            var body = await resp.Content.ReadAsStringAsync(ct);
-
-            if (!resp.IsSuccessStatusCode)
-                throw new TelegramApiException((int)resp.StatusCode, body);
-        }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new TelegramTransportException("Telegram HTTP error", ex);
-        }
-    }
     public async Task SendMessageAsync(SendMessageRequest message, CancellationToken ct)
     {
+        if (message.ChatId == 0) throw new ArgumentException("chatId cannot be 0", nameof(message.ChatId));
+        if (string.IsNullOrWhiteSpace(message.Text)) throw new ArgumentException("text cannot be empty", nameof(message.Text));
+
         try
         {
             var resp = await _http.PostAsJsonAsync("sendMessage", message, ct);
@@ -78,17 +60,13 @@ public sealed class TelegramClient
             if (!resp.IsSuccessStatusCode)
                 throw new TelegramApiException((int)resp.StatusCode, body);
         }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
-        {
-            throw;
-        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
         catch (HttpRequestException ex)
         {
-            throw new TelegramTransportException("Telegram HTTP error", ex);
+            throw new TelegramTransportException("Telegram sendMessage HTTP error", ex);
         }
     }
 
-    public sealed record TgError(bool ok, int error_code, string description);
     public async Task AnswerCallbackAsync( string callbackQueryId, CancellationToken ct, string? text = null, bool showAlert = false)
     {
         if (string.IsNullOrWhiteSpace(callbackQueryId))
@@ -118,6 +96,7 @@ public sealed class TelegramClient
             throw new TelegramTransportException("Telegram answerCallbackQuery HTTP error", ex);
         }
     }
+
 
     public Task EditMessageTextAsync(long chatId, long messageId, string text, CancellationToken ct)
         => EditMessageTextAsync(chatId, messageId, text, replyMarkup: null, ct);

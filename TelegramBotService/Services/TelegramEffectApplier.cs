@@ -31,7 +31,7 @@ namespace TelegramBotService.Services
                     break;
 
                 case SendText s:
-                    await _tg.SendMessageAsync(s.ChatId, s.Text, ct);
+                    await _tg.SendMessageAsync(s.ChatId, s.Text, s.Keyboard, ct);
                     break;
 
                 case EditText e:

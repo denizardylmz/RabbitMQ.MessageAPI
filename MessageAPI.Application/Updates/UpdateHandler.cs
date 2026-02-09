@@ -86,12 +86,12 @@ namespace MessageAPI.Application.Updates
             {
                 case "button:cancel":
                     effects.Add(new EditText(cb.ChatId, cb.MessageId, "Cancel seçildi."));
-                    effects.Add(new ShowMainMenu(cb.ChatId));
+                    effects.Add(new SendText(cb.ChatId, "Mesai Botu; \n", Keyboard: Keyboards.MainMenu()));
                     break;
 
                 case "button:ok":
                     effects.Add(new EditText(cb.ChatId, cb.MessageId, "Ok Seçildi ✅"));
-                    effects.Add(new ShowMainMenu(cb.ChatId));
+                    effects.Add(new SendText(cb.ChatId, "Mesai Botu; \n", Keyboard: Keyboards.MainMenu()));
                     break;
 
                 case "menu:breakStart":
@@ -157,7 +157,7 @@ namespace MessageAPI.Application.Updates
                     {
                         effects.Add(new EditText(cb.ChatId, cb.MessageId, "İşlem iptal edildi.", Keyboard: null));
 
-                        effects.Add(new ShowMainMenu(cb.ChatId, cb.MessageId));
+                        effects.Add(new SendText(cb.ChatId, "Mesai Botu; \n", Keyboard: Keyboards.MainMenu()));
                         break;
                     }
 
@@ -173,7 +173,7 @@ namespace MessageAPI.Application.Updates
                             /// Mesai bitişi sonrası, workerdan gelen messagle ile başka bi handlerda handler edilecek. 
                             // Bu aşşağıdaki yapı değişecek.
                             effects.Add(new EditText(cb.ChatId, cb.MessageId, "✅ Mesai kapatıldı.", Keyboard : null));
-                            effects.Add(new ShowMainMenu(cb.ChatId));
+                            effects.Add(new SendText(cb.ChatId, "Mesai Botu; \n", Keyboard: Keyboards.MainMenu()));
                         }
                         catch (Exception ex)
                         {
@@ -187,7 +187,7 @@ namespace MessageAPI.Application.Updates
 
                 case "help":
                     effects.Add(new EditText(cb.ChatId, cb.MessageId, "Komutlar: /start, /echo <text>"));
-                    effects.Add(new ShowMainMenu(cb.ChatId));
+                    effects.Add(new SendText(cb.ChatId, "Mesai Botu; \n", Keyboard: Keyboards.MainMenu()));
                     break;
 
                 default:
@@ -206,8 +206,7 @@ namespace MessageAPI.Application.Updates
             {
                 return new List<IAppEffect>(new IAppEffect[]
                 {
-                    new SendText(txt.ChatId, "Mesai Botu;"),
-                    new ShowMainMenu(txt.ChatId)
+                    new SendText(txt.ChatId, "Mesai Botu; \n", Keyboard: Keyboards.MainMenu())
                 });
             }
 
@@ -271,21 +270,6 @@ namespace MessageAPI.Application.Updates
         public static InlineKeyboardMarkup BackToMenuOnly()
             => new InlineKeyboardMarkup()
                 .Row(InlineKeyboardButton.Create("⬅️ Menüye dön", "menu:main"));
-
-
-        private static InlineKeyboardMarkup BuildMainMenuKeyboard()
-    => new InlineKeyboardMarkup()
-        .Row(
-            InlineKeyboardButton.Create("Mesai Başlat", "menu:shiftIn"),
-            InlineKeyboardButton.Create("Mesai Bitir", "menu:shiftOut")
-        )
-        .Row(
-            InlineKeyboardButton.Create("Mola Başlat", "menu:breakStart"),
-            InlineKeyboardButton.Create("Mola Bitir", "menu:breakEnd")
-        )
-        .Row(
-            InlineKeyboardButton.Create("ℹ️ Yardım", "help")
-        );
 
 
     }

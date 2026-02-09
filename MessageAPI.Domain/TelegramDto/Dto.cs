@@ -158,9 +158,18 @@ namespace MessageAPI.Domain.TelegramDto
             return this;
         }
 
-        public SendMessageRequest WithInlineKeyboard(Func<InlineKeyboardMarkup, InlineKeyboardMarkup> builder)
+        public SendMessageRequest WithInlineKeyboard(Func<InlineKeyboardMarkup, InlineKeyboardMarkup>? builder)
         {
+            if (builder == null)
+                return this;
+
             ReplyMarkup = builder(new InlineKeyboardMarkup());
+            return this;
+        }
+
+        public SendMessageRequest SetMarkUp(InlineKeyboardMarkup markup)
+        {
+            ReplyMarkup = markup;
             return this;
         }
     }
