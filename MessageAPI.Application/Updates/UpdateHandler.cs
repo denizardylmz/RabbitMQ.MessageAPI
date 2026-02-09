@@ -183,10 +183,7 @@ namespace MessageAPI.Application.Updates
                         break;
                     }
 
-
-
                 case "help":
-                    effects.Add(new EditText(cb.ChatId, cb.MessageId, "Komutlar: /start, /echo <text>"));
                     effects.Add(new SendText(cb.ChatId, "Mesai Botu; \n", Keyboard: Keyboards.MainMenu()));
                     break;
 

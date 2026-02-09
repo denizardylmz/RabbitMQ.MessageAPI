@@ -39,39 +39,9 @@ namespace TelegramBotService.Services
                         await _tg.EditMessageTextAsync(e.ChatId, e.MessageId, e.Text, e.Keyboard, ct);
                         break;
                     }
-
-                case ShowMainMenu m:
-                    await SendMenu(m.ChatId, ct);
-                    break;
-
                 default:
                     break;
             }
         }
-
-        private Task SendMenu(long chatId, CancellationToken ct)
-        {
-            var message = SendMessageRequest.Create(chatId)
-                .WithText("Merhaba")
-                .WithInlineKeyboard(kb => kb
-                    .Row(
-                        InlineKeyboardButton.Create("Mesai Başlat", "menu:shiftIn"),
-                        InlineKeyboardButton.Create("Mesai Bitir", "menu:shiftOut")
-                    )
-                    .Row(
-                        InlineKeyboardButton.Create("Mola Başlat", "menu:breakStart"),
-                        InlineKeyboardButton.Create("Mola Bitir", "menu:breakEnd")
-                    )
-                    .Row(
-                        InlineKeyboardButton.Create("ℹ️ Yardım", "help")
-                    )
-                );
-
-            return _tg.SendMessageAsync(message, ct);
-        }
-
-
-
-
     }
 }
