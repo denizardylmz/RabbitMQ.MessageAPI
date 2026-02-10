@@ -1,4 +1,4 @@
-﻿using MessageService.Contracts;
+﻿using MessageAPI.Abstractions;
 using MessageService.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -15,7 +15,7 @@ namespace MessageService.Settings
             if (services == null) throw new ArgumentNullException(nameof(services));
 
             services.AddHostedService<ReceiverService>();
-            services.AddSingleton<MessageService.Contracts.IMessageService, MessageService.Services.MessageService>();
+            services.AddSingleton<IMessageService, MessageService.Services.MessageService>();
             services.AddSingleton<IMessageBusPublisher>(sp =>
             {
                 var settings = sp.GetRequiredService<IOptions<MessageBusSettings>>().Value;

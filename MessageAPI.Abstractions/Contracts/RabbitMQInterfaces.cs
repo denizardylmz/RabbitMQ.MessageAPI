@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MessageService.Contracts
+namespace MessageAPI.Abstractions
 {
     public interface IMessageBusPublisher
     {
@@ -30,4 +30,15 @@ namespace MessageService.Contracts
         bool Confirm = true
     );
 
+
+
+    public interface IMessageService
+    {
+        public Task<string> SendMessageAsync(string message);
+    }
+
+    public interface IReceiverService
+    {
+
+    }
 }

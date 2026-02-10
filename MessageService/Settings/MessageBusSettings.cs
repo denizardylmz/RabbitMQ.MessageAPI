@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MessageService.Contracts
+namespace MessageService.Settings
 {
     public class MessageBusSettings
     {
@@ -13,3 +13,4 @@ namespace MessageService.Contracts
 
     }
 }
+ssssssssssssssssss

@@ -1,8 +1,6 @@
-﻿using MessageService.Contracts;
+﻿using MessageAPI.Abstractions;
+using MessageService.Settings;
 using RabbitMQ.Client;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Text.Json;
 
 namespace MessageService.Services

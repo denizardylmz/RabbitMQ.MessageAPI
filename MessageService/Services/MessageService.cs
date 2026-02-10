@@ -1,9 +1,8 @@
-﻿using MessageService.Contracts;
+﻿using MessageAPI.Abstractions;
+using MessageService.Settings;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
-using System;
-using System.Collections.Generic;
-using System.Text;
+
 
 namespace MessageService.Services
 {

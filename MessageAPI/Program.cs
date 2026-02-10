@@ -2,7 +2,6 @@ using MessageAPI.Abstractions;
 using MessageAPI.API.Infrastructure;
 using MessageAPI.Infrastructure.Interceptors;
 using MessageAPI.Infrastructure.Settings;
-using MessageService.Contracts;
 using MessageService.Settings;
 using TelegramBotService.Contracts;
 using TelegramBotService.Settings;
