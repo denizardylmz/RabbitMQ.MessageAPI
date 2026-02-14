@@ -112,19 +112,43 @@ namespace MessageAPI.Application.Updates
 
                 case "menu:breakEnd":
                     {
+                        effects.Add(new EditText(
+                            cb.ChatId,
+                            cb.MessageId,
+                            "Mola bitirmek istediğinize emin misiniz?\n\nBu işlem mola bitiriş saatinizi kaydeder.",
+                           Keyboard: Keyboards.ConfirmBreakEnd()
+                        ));
+                    }
+                    break;
+                case "confirm:breakEnd:no":
+                    {
+                        effects.Add(new EditText(cb.ChatId, cb.MessageId, "İşlem iptal edildi.", Keyboard: null));
+
+                        effects.Add(new SendText(cb.ChatId, "Mesai Botu; \n", Keyboard: Keyboards.MainMenu()));
+                        break;
+                    }
+
+                case "confirm:breakEnd:yes":
+                    {
                         try
                         {
                             using var scope = _scopeFactory.CreateScope();
                             var handler = scope.ServiceProvider.GetRequiredService<SendBreakEndHandler>();
                             await handler.Handle(new ShiftCommand(cb.UserId, DateTime.UtcNow), ct);
+
+
+                            /// Mola bitişi sonrası, workerdan gelen messagle ile başka bi handlerda handler edilecek. 
+                            // Bu aşşağıdaki yapı değişecek.
+                            effects.Add(new EditText(cb.ChatId, cb.MessageId, "✅ Mola bitirildi.", Keyboard: null));
+                            effects.Add(new SendText(cb.ChatId, "Mesai Botu; \n", Keyboard: Keyboards.MainMenu()));
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Break end failed");
-                            effects.Add(new EditText(cb.ChatId, cb.MessageId, "Mola bitirilemedi. Tekrar dener misiniz?"));
+                            _logger.LogError(ex, "breakEnd failed");
+                            effects.Add(new EditText(cb.ChatId, cb.MessageId, "Mola bitirilemedi. Tekrar dener misiniz?", Keyboard: Keyboards.BackToMenuOnly()));
                         }
+                        break;
                     }
-                    break;
 
                 case "menu:shiftIn":
                     {
@@ -249,6 +273,14 @@ namespace MessageAPI.Application.Updates
                     InlineKeyboardButton.Ok("confirm:shiftOut:yes"),
                     InlineKeyboardButton.Cancel("confirm:shiftOut:no")
                 );
+
+        public static InlineKeyboardMarkup ConfirmBreakEnd()
+            => new InlineKeyboardMarkup()
+                .Row(
+                    InlineKeyboardButton.Ok("confirm:breakEnd:yes"),
+                    InlineKeyboardButton.Cancel("confirm:breakEnd:no")
+                );
+
 
         public static InlineKeyboardMarkup MainMenu()
             => new InlineKeyboardMarkup()

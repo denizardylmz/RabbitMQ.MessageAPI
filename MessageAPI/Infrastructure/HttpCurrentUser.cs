@@ -1,4 +1,5 @@
 ﻿using MessageAPI.Abstractions;
+using MessageAPI.Abstractions.Contracts;
 using MessageAPI.Infrastructure.Interceptors;
 
 namespace MessageAPI.API.Infrastructure

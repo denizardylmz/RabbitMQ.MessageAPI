@@ -1,4 +1,4 @@
-﻿using MessageService.Contracts;
+﻿using MessageAPI.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 

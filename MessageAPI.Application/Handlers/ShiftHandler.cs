@@ -1,5 +1,5 @@
-﻿using MessageAPI.Domain.DbModels;
-using MessageService.Contracts;
+﻿using MessageAPI.Abstractions;
+using MessageAPI.Domain.DbModels;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
@@ -18,6 +18,8 @@ namespace MessageAPI.Application.Handlers
         public SendShiftStartHandler(IMemoryCache cache, IMessageBusPublisher messageBusPublisher)
         {
             _cache = cache;
+
+
             _bus = messageBusPublisher;
         }
 

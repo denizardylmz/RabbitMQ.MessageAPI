@@ -21,6 +21,7 @@ namespace MessageService.Settings
                 var settings = sp.GetRequiredService<IOptions<MessageBusSettings>>().Value;
                 return new RabbitMqPublisher(settings);
             });
+
             return services;
         }
     }

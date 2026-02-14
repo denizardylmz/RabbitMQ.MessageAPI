@@ -26,6 +26,7 @@ namespace MessageService.Services
                 Password = _settings.Password
             };
         }
+
         private async Task<IConnection> GetConnectionAsync()
         {
             if (_connection == null || !_connection.IsOpen)

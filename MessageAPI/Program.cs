@@ -6,6 +6,7 @@ using MessageService.Settings;
 using TelegramBotService.Contracts;
 using TelegramBotService.Settings;
 using MessageAPI.Application.Settings;
+using MessageAPI.Abstractions.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,7 +59,6 @@ public static class ServiceExtensions
         services.AddScoped<ICurrentUser, HttpCurrentUser>();
 
         services.AddControllers();
-        //servicesout configuring OpenAPI at https://aka.ms/aspnet/openapi
         services.AddOpenApi();
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
