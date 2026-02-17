@@ -37,8 +37,4 @@ namespace MessageAPI.Abstractions
         public Task<string> SendMessageAsync(string message);
     }
 
-    public interface IReceiverService
-    {
-
-    }
 }

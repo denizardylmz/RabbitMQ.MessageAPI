@@ -84,7 +84,7 @@ namespace MessageAPI.Application.Handlers
             var evt = new ShiftCommand(cmd.telegramUserId, DateTime.Now);
 
             return _bus.PublishAsync(
-                exchange: "ex.erp",
+                exchange: "ex.erp.tg",
                 routingKey: "shift.break.start",
                 message: evt,
                 options: new PublishOptions(
@@ -112,7 +112,7 @@ namespace MessageAPI.Application.Handlers
             var evt = new ShiftCommand(cmd.telegramUserId, DateTime.Now);
 
             return _bus.PublishAsync(
-                exchange: "ex.erp",
+                exchange: "ex.erp.tg",
                 routingKey: "shift.break.end",
                 message: evt,
                 options: new PublishOptions(
