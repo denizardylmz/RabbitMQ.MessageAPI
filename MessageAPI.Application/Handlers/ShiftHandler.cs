@@ -81,6 +81,9 @@ namespace MessageAPI.Application.Handlers
             _bus = messageBusPublisher;
         }
 
+
+
+
         public Task Handle(ShiftCommand cmd, CancellationToken ct)
         {
             var evt = new ShiftCommand(cmd.telegramUserId, DateTime.Now);
