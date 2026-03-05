@@ -1,13 +1,12 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using MessageService.Settings;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Reflection;
 using System.Text;
-using System.Threading.Channels;
 
 namespace MessageService.Services
 {
@@ -17,14 +16,15 @@ namespace MessageService.Services
         IConnectionFactory _connectionFactory;
         IConnection _connection;
 
-        public ReceiverService(ILogger<ReceiverService> logger)
+        public ReceiverService(IOptions<MessageBusSettings> options, ILogger<ReceiverService> logger)
         {
+            var settings = options.Value;
             _connectionFactory = new ConnectionFactory
             {
-                HostName = "localhost",
-                Port = 5672,
-                UserName = "admin",
-                Password = "admin"
+                HostName = settings.HostName,
+                Port = settings.Port,
+                UserName = settings.UserName,
+                Password = settings.Password
             };
 
             _logger = logger;
