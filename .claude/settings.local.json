@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add MessageService/Services/ReceiverService.cs)",
+      "Bash(git commit:*)",
+      "Bash(git push -u origin claude/frosty-yalow)",
+      "Bash(gh pr:*)"
+    ]
+  }
+}
